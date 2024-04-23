@@ -15,20 +15,23 @@ func ChainMiddleware(handler http.Handler, middleware func(http.HandlerFunc) htt
 	})
 }
 
-func LoggerMiddleware(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func LoggerMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
-		// Execute the next handler
-		next(w, r)
+		// Create a response recorder to capture the status code
+		recorder := &statusRecorder{ResponseWriter: w, status: http.StatusOK}
+
+		// Serve HTTP with the response recorder
+		next.ServeHTTP(recorder, r)
 
 		end := time.Now()
 		latency := end.Sub(start)
 
 		logger := log.Info()
-		status := w.(interface {
-			Status() int
-		}).Status()
+
+		// Get the status code from the response recorder
+		status := recorder.status
 
 		if status != http.StatusOK {
 			logger = log.Error()
@@ -41,7 +44,18 @@ func LoggerMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			Int("status", status).
 			Dur("latency", latency).
 			Msg("request handled")
-	}
+	})
+}
+
+// statusRecorder captures the HTTP status code
+type statusRecorder struct {
+	http.ResponseWriter
+	status int
+}
+
+func (sr *statusRecorder) WriteHeader(code int) {
+	sr.status = code
+	sr.ResponseWriter.WriteHeader(code)
 }
 
 func SetupLogger() {
