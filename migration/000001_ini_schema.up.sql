@@ -1,0 +1,14 @@
+-- migration/001_create_accounts_table.sql
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+CREATE TABLE accounts (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    name VARCHAR NOT NULL,
+    email VARCHAR UNIQUE NOT NULL,
+    phone VARCHAR NOT NULL,
+    password VARCHAR NOT NULL,
+    password_changed_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_email_verified BOOLEAN NOT NULL DEFAULT FALSE
+);
