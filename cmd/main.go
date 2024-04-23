@@ -1,22 +1,39 @@
 package main
 
 import (
+	"context"
 	"os"
 
 	"github.com/dpurbosakti/go-native/internal/handlers"
+	store "github.com/dpurbosakti/go-native/internal/repositories"
+	"github.com/dpurbosakti/go-native/middlewares"
+	"github.com/dpurbosakti/go-native/pkg/config"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
 func main() {
+	config, err := config.LoadConfig("./cmd")
+	if err != nil {
+		log.Fatal().Err(err).Msg("cannot load config")
+	}
+
 	// Setup logger
-	// middlewares.SetupLogger()
-	if true {
+	middlewares.SetupLogger()
+	if config.ENVIRONMENT == "development" {
 		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
 
+	connPool, err := pgxpool.New(context.Background(), config.DBSource)
+	if err != nil {
+		log.Fatal().Err(err).Msg("cannot connect to db")
+	}
+
+	s := store.NewStore(connPool)
+
 	httpServer := handlers.NewHTTPServer(":8080")
-	err := httpServer.Run()
+	err = httpServer.Run(s)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to run http server")
 	}
