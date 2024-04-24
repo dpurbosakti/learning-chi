@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    env_file:
+      - ./cmd/config.env
+    ports:
+      - 8080:8080
+    volumes:
+      - .:/app
+    command: go run cmd/main.go -b 0.0.0.0
+  db:
+    image: postgres:14-alpine
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=mokopass
+      - POSTGRES_DB=go_native
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres-db:/var/lib/postgresql/data
+
+volumes:
+  postgres-db:
