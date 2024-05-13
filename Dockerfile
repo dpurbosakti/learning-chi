@@ -11,10 +11,12 @@ FROM alpine:3.19
 WORKDIR /app
 COPY --from=builder /app/main .
 COPY ./config.env .
-# COPY start.sh .
-# COPY wait-for.sh .
+COPY start.sh .
+COPY wait-for.sh .
+RUN chmod +x start.sh
+RUN chmod +x wait-for.sh
 COPY db/migration db/migration
 
 EXPOSE 8080 9090
 CMD [ "/app/main" ]
-# ENTRYPOINT [ "/app/start.sh" ]
+ENTRYPOINT [ "/app/start.sh" ]

@@ -22,8 +22,8 @@ services:
       - DB_SOURCE=postgresql://root:mokopass@postgres/go_native?sslmode=disable
     depends_on:
       - postgres
-    # entrypoint: ["/app/wait-for.sh", "postgres:5432", "--", ]
+    entrypoint: ["/app/wait-for.sh", "postgres:5432", "--", "/app/start.sh"]
     # volumes:
     #   - .:/app
-    # command: go run cmd/main.go -b 0.0.0.0
+    command: ["/app/main"]
   
